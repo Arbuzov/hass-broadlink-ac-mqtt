@@ -1,0 +1,3 @@
+name: AC MQTT proxy for home assistant
+url: 'https://github.com/Arbuzov/hass-broadlink-ac-mqtt'
+maintainer: Serge Arbuzov <info@whitediver.com>
