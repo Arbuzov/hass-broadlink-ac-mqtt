@@ -1,7 +1,7 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
-RUN apk add --no-cache gcc
+RUN apk add --no-cache gcc build-essential
 
 
 
