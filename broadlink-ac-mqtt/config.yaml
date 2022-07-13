@@ -9,4 +9,4 @@ arch:
   - armhf
   - armv7
   - i386
-image: "ghcr.io/Arbuzov/{arch}-addon-broadlink-ac-mqtt"
+image: "ghcr.io/arbuzov/{arch}-addon-broadlink-ac-mqtt"
