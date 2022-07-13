@@ -13,49 +13,49 @@ on:
       - master
 
 jobs:
-#  init:
-#    runs-on: ubuntu-latest
-#    name: Initialize builds
-#    outputs:
-#      changed_addons: ${{ steps.changed_addons.outputs.addons }}
-#      changed: ${{ steps.changed_addons.outputs.changed }}
-#    steps:
-#      - name: Check out the repository
-#        uses: actions/checkout@v3.0.2
-#
-#      - name: Get changed files
-#        id: changed_files
-#        uses: jitterbit/get-changed-files@v1
-#
-#      - name: Find add-on directories
-#        id: addons
-#        uses: home-assistant/actions/helpers/find-addons@master
-#
-#      - name: Get changed add-ons
-#        id: changed_addons
-#        run: |
-#          declare -a changed_addons
-#          for addon in ${{ steps.addons.outputs.addons }}; do
-#            if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon ]]; then
-#              for file in ${{ env.MONITORED_FILES }}; do
-#                  if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon/$file ]]; then
-#                    if [[ ! "${changed_addons[@]}" =~ $addon ]]; then
-#                      changed_addons+=("\"${addon}\",");
-#                    fi
-#                  fi
-#              done
-#            fi
-#          done
-#          changed=$(echo ${changed_addons[@]} | rev | cut -c 2- | rev)
-#          if [[ -n ${changed} ]]; then
-#            echo "Changed add-ons: $changed";
-#            echo "::set-output name=changed::true";
-#            echo "::set-output name=addons::[$changed]";
-#          else
-#            echo "No add-on had any monitored files changed (${{ env.MONITORED_FILES }})";
-#          fi
+  init:
+    runs-on: ubuntu-latest
+    name: Initialize builds
+    outputs:
+      changed_addons: ${{ steps.changed_addons.outputs.addons }}
+      changed: ${{ steps.changed_addons.outputs.changed }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3.0.2
+
+      - name: Get changed files
+        id: changed_files
+        uses: jitterbit/get-changed-files@v1
+
+      - name: Find add-on directories
+        id: addons
+        uses: home-assistant/actions/helpers/find-addons@master
+
+      - name: Get changed add-ons
+        id: changed_addons
+        run: |
+          declare -a changed_addons
+          for addon in ${{ steps.addons.outputs.addons }}; do
+            if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon ]]; then
+              for file in ${{ env.MONITORED_FILES }}; do
+                  if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon/$file ]]; then
+                    if [[ ! "${changed_addons[@]}" =~ $addon ]]; then
+                      changed_addons+=("\"${addon}\",");
+                    fi
+                  fi
+              done
+            fi
+          done
+          changed=$(echo ${changed_addons[@]} | rev | cut -c 2- | rev)
+          if [[ -n ${changed} ]]; then
+            echo "Changed add-ons: $changed";
+            echo "::set-output name=changed::true";
+            echo "::set-output name=addons::[$changed]";
+          else
+            echo "No add-on had any monitored files changed (${{ env.MONITORED_FILES }})";
+          fi
   build:
-#    needs: init
+    needs: init
     runs-on: ubuntu-latest
     if: needs.init.outputs.changed == 'true'
     name: Build ${{ matrix.arch }} ${{ matrix.addon }} add-on
