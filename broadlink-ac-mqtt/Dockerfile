@@ -1,7 +1,7 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
-RUN apk add --no-cache gcc python-dev
+RUN apk add --no-cache gcc python3-dev
 
 
 
