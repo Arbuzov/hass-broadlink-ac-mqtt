@@ -1,9 +1,9 @@
 build_from:
-  aarch64: "ghcr.io/home-assistant/aarch64-base:3.15"
-  amd64: "ghcr.io/home-assistant/amd64-base:3.15"
-  armhf: "ghcr.io/home-assistant/armhf-base:3.15"
-  armv7: "ghcr.io/home-assistant/armv7-base:3.15"
-  i386: "ghcr.io/home-assistant/i386-base:3.15"
+  aarch64: "ghcr.io/home-assistant/aarch64-base-python:3.15"
+  amd64: "ghcr.io/home-assistant/amd64-base-python:3.15"
+  armhf: "ghcr.io/home-assistant/armhf-base-python:3.15"
+  armv7: "ghcr.io/home-assistant/armv7-base-python:3.15"
+  i386: "ghcr.io/home-assistant/i386-base-python:3.15"
 labels:
   org.opencontainers.image.title: "Home Assistant Add-on: AC MQTT proxy"
   org.opencontainers.image.description: "AC MQTT proxy for home assistant."
