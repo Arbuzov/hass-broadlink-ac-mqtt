@@ -1,11 +1,10 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
-RUN apk add --no-cache gcc g++ make
-
 COPY rootfs /
 
-RUN pip install --no-cache-dir -U \
+RUN apk add --no-cache gcc g++ make rust \
+    && pip install --no-cache-dir -U \
     paho-mqtt \
     parser-module \
     pyyaml \
