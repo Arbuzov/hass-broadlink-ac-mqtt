@@ -16,4 +16,4 @@ message=$(bashio::config 'message')
 bashio::log.info "${message:="Hello World..."}"
 
 ## Run your program
-exec python3 /usr/share/broadlink_ac_mqtt-1.2.1b/monitor.py -d
+python3 /usr/share/broadlink_ac_mqtt-1.2.1b/monitor.py -d
