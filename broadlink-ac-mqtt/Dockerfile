@@ -3,7 +3,7 @@ FROM $BUILD_FROM
 
 COPY rootfs /
 
-RUN apk add --no-cache gcc g++ make rust \
+RUN apk add --no-cache gcc g++ make rust cargo \
     && pip install --no-cache-dir -U \
     paho-mqtt \
     parser-module \
