@@ -38,7 +38,7 @@ schema:
     port: port
     client_id: str
     user: str
-    passwd: koos_se_password
+    passwd: str
     topic_prefix: str
     auto_discovery_topic: str
     auto_discovery_topic_retain: bool
