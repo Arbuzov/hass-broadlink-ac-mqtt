@@ -3,7 +3,7 @@ FROM $BUILD_FROM
 
 COPY rootfs /
 
-RUN apk add --no-cache gcc g++ make rust cargo \
+RUN apk add --no-cache gcc g++ make rust cargo libffi-dev openssl-dev \
     && pip install --no-cache-dir -U \
     paho-mqtt \
     parser-module \
