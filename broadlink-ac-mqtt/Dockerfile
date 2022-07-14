@@ -7,6 +7,7 @@ COPY rootfs /
 
 RUN pip install --no-cache-dir -U \
     paho-mqtt \
+    parser \
     pyyaml \
     pycrypto \
     && cd /usr/share \
