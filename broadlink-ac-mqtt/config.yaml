@@ -6,8 +6,8 @@ url: "https://github.com/Arbuzov/hass-broadlink-ac-mqtt"
 arch:
   - aarch64
   - amd64
-#  - armhf
-#  - armv7
+  - armhf
+  - armv7
   - i386
 init: false
 image: "ghcr.io/arbuzov/{arch}-addon-broadlink-ac-mqtt"
