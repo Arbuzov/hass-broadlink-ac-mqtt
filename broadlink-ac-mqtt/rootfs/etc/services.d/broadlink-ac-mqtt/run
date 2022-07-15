@@ -4,7 +4,7 @@
 # s6-overlay docs: https://github.com/just-containers/s6-overlay
 # ==============================================================================
 
-python3 -c 'import sys, yaml, json; print(yaml.dump(json.loads("/data/options.json")))' > /usr/share/broadlink_ac_mqtt-1.2.1b/config.yml
+python3 -c 'import sys, yaml, json; print(yaml.dump(json.loads(open("/data/options.json").read())))' > /usr/share/broadlink_ac_mqtt-1.2.1b/config.yml
 
 ## Run your program
 python3 /usr/share/broadlink_ac_mqtt-1.2.1b/monitor.py -d
