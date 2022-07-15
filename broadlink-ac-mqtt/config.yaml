@@ -1,5 +1,5 @@
 name: AC MQTT proxy for home assistant
-version: 0.1.4
+version: 0.1.5
 slug: broadlink-ac-mqtt
 description: Provides AC MQTT proxy for home assistant
 url: "https://github.com/Arbuzov/hass-broadlink-ac-mqtt"
@@ -27,6 +27,11 @@ options:
     auto_discovery_topic: homeassistant
     auto_discovery_topic_retain: False
     discovery: False
+  devices:
+    - ip: 127.0.0.1
+      mac:  aabbccddeeff00
+      name: Room
+      port: 80
 schema:
   service:
     daemon_mode: bool
