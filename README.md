@@ -1,3 +1,15 @@
+# Home Assistant broadlink MQTT addon repository
+
+This addon embedds [liaan/broadlink_ac_mqtt](https://github.com/liaan/broadlink_ac_mqtt) project into Home assistant addons. I do not plan to add any new features into the parent application, but I am open if someone propose another project as parent.
+
+To make your devices working you must:
+
+* Install this addon
+* Install [Mosquitto broker](https://github.com/home-assistant/addons/tree/master/mosquitto) or something like this to manage MQTT
+* Get IP and MAC addresses of your devices
+* Connect this addon to the Mosquitto
+* Setup your [device topics](https://community.home-assistant.io/t/broadlink-ac-integration-ac-freedom-aux-dunham-rcool-akai-rinnai-kenwood-tornado-ballu/342789)
+
 ## Add-ons
 
 This repository contains the following add-ons
@@ -15,3 +27,7 @@ This repository contains the following add-ons
 [armhf-shield]: https://img.shields.io/badge/armhf-yes-green.svg
 [armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
 [i386-shield]: https://img.shields.io/badge/i386-yes-green.svg
+
+### Known problems
+
+* Devices may not be discovered. Could be fixed by setting self_discovery: False at the service section.
