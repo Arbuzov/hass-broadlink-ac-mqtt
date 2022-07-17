@@ -2,6 +2,8 @@
 
 This addon embedds [liaan/broadlink_ac_mqtt](https://github.com/liaan/broadlink_ac_mqtt) project into Home assistant addons. I do not plan to add any new features into the parent application, but I am open if someone propose another project as parent.
 
+[![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Farbuzov%2Fhass-broadlink-ac-mqtt)
+
 To make your devices working you must:
 
 * Install this addon
