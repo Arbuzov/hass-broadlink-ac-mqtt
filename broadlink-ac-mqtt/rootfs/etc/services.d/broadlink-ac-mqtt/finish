@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Stop the service
+# s6-overlay docs: https://github.com/just-containers/s6-overlay
+# ==============================================================================
