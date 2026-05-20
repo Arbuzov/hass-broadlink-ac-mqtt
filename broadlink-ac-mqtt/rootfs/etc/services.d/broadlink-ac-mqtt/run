@@ -6,5 +6,13 @@
 
 python3 -c 'import sys, yaml, json; print(yaml.dump(json.loads(open("/data/options.json").read())))' > /usr/share/broadlink_ac_mqtt-1.2.1b/config.yml
 
+## Check if debug mode is enabled
+DEBUG_FLAG=""
+if bashio::config.true 'service.debug'; then
+    export BROADLINK_DEBUG=true
+    DEBUG_FLAG="-d"
+    bashio::log.info "Debug mode is enabled — verbose logging is active"
+fi
+
 ## Run your program
-python3 /usr/share/broadlink_ac_mqtt-1.2.1b/monitor.py
+python3 /usr/share/broadlink_ac_mqtt-1.2.1b/monitor.py ${DEBUG_FLAG}

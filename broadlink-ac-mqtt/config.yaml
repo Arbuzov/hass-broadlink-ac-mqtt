@@ -1,5 +1,5 @@
 name: AC MQTT proxy for home assistant
-version: 0.6.2
+version: 0.6.4
 slug: broadlink-ac-mqtt
 description: Provides AC MQTT proxy for home assistant
 url: "https://github.com/Arbuzov/hass-broadlink-ac-mqtt"
@@ -17,6 +17,7 @@ options:
     update_interval: 10
     self_discovery: False
     bind_to_ip: False
+    debug: False
   mqtt:
     host: addon_core_mosquitto
     port: 1883
@@ -38,6 +39,7 @@ schema:
     update_interval: int
     self_discovery: bool
     bind_to_ip: bool
+    debug: bool?
   mqtt:
     host: str
     port: port
