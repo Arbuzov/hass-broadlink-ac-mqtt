@@ -1,5 +1,13 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.6.5
+
+- Updated Home Assistant base images to Python 3.13 / Alpine 3.22
+- Replaced deprecated `pycrypto` with `pycryptodome`
+- Updated GitHub Actions output syntax to `$GITHUB_OUTPUT`
+- Normalized add-on option booleans to lowercase YAML values
+- Aligned listed architectures with currently supported targets (`aarch64`, `amd64`)
+
 ## 0.6.4
 
 - Added `service.debug` configuration option to enable verbose debug logging
