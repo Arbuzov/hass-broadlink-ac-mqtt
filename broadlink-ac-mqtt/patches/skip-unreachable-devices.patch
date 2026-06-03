@@ -1,0 +1,26 @@
+diff --git a/broadlink_ac_mqtt/AcToMqtt.py b/broadlink_ac_mqtt/AcToMqtt.py
+index 183abec..37ad7e6 100644
+--- a/broadlink_ac_mqtt/AcToMqtt.py
++++ b/broadlink_ac_mqtt/AcToMqtt.py
+@@ -31,0 +32 @@ class AcToMqtt:
++	device_startup_attempts = 5
+@@ -76,2 +77,10 @@ class AcToMqtt:
+-		for device in device_list:			
+-			device_objects[device['mac']] = broadlink.gendevice(devtype=0x4E2a, host=(device['ip'],device['port']),mac = bytearray.fromhex(device['mac']), name=device['name'],update_interval = self.config['update_interval'])		
++		for device in device_list:
++			for attempt in range(1, self.device_startup_attempts + 1):
++				try:
++					device_objects[device['mac']] = broadlink.gendevice(devtype=0x4E2a, host=(device['ip'],device['port']),mac = bytearray.fromhex(device['mac']), name=device['name'],update_interval = self.config['update_interval'])
++					break
++				except (broadlink.ConnectError, OSError) as e:
++					logger.warning("Starting device %s at %s:%s failed on attempt %s/%s: %s" % (device['mac'], device['ip'], device['port'], attempt, self.device_startup_attempts, e))
++					logger.debug(traceback.format_exc())
++			else:
++				logger.error("Skipping device %s at %s:%s after %s failed startup attempts" % (device['mac'], device['ip'], device['port'], self.device_startup_attempts))
+@@ -94 +103 @@ class AcToMqtt:
+-		if 	devices == [] or devices == None:
++		if devices == [] or devices == None or devices == {}:
+@@ -97 +106,2 @@ class AcToMqtt:
+-			return
++			time.sleep(self.config["update_interval"])
++			return 0
