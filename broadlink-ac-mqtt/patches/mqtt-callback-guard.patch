@@ -1,0 +1,59 @@
+diff --git a/broadlink_ac_mqtt/AcToMqtt.py b/broadlink_ac_mqtt/AcToMqtt.py
+index 37ad7e6..f61c84c 100644
+--- a/broadlink_ac_mqtt/AcToMqtt.py
++++ b/broadlink_ac_mqtt/AcToMqtt.py
+@@ -30,6 +30,9 @@ class AcToMqtt:
+ 	previous_status = {}
+ 	last_update = {}
+ 	device_startup_attempts = 5
++	##connect_mqtt() starts the paho network thread before start() assigns the
++	##real device map, so callbacks must always find an attribute here.
++	device_objects = {}
+ 	
+ 	def __init__(self,config):
+ 		self.config = config
+@@ -77,7 +80,10 @@ class AcToMqtt:
+ 		for device in device_list:
+ 			for attempt in range(1, self.device_startup_attempts + 1):
+ 				try:
+-					device_objects[device['mac']] = broadlink.gendevice(devtype=0x4E2a, host=(device['ip'],device['port']),mac = bytearray.fromhex(device['mac']), name=device['name'],update_interval = self.config['update_interval'])
++					##Key on the lower-cased MAC: ac_db reports macaddress lower-cased,
++					##so that is what Home Assistant publishes commands to, whatever
++					##case the add-on config used.
++					device_objects[device['mac'].lower()] = broadlink.gendevice(devtype=0x4E2a, host=(device['ip'],device['port']),mac = bytearray.fromhex(device['mac']), name=device['name'],update_interval = self.config['update_interval'])
+ 					break
+ 				except (broadlink.ConnectError, OSError) as e:
+ 					logger.warning("Starting device %s at %s:%s failed on attempt %s/%s: %s" % (device['mac'], device['ip'], device['port'], attempt, self.device_startup_attempts, e))
+@@ -374,7 +380,17 @@ class AcToMqtt:
+ 	def _mqtt_on_subscribe(self,client, userdata, mid, granted_qos):
+ 		logger.debug("Mqtt Subscribed")
+ 		
+-	def _on_mqtt_message(self, client, userdata, msg):		
++	def _on_mqtt_message(self, client, userdata, msg):
++		##paho tears down its network thread when a callback raises, which kills
++		##every subscription and publish for the rest of the process life. Nothing
++		##may escape from here.
++		try:
++			self._handle_mqtt_message(client, userdata, msg)
++		except Exception as e:
++			logger.error("Error handling message on %s: %s" % (msg.topic, e))
++			logger.debug(traceback.format_exc())
++
++	def _handle_mqtt_message(self, client, userdata, msg):
+ 
+ 		try:
+ 			logger.debug('Mqtt Message Received! Userdata: %s, Message %s' % (userdata, msg.topic+" "+str(msg.payload)))
+@@ -392,6 +408,13 @@ class AcToMqtt:
+ 			return
+ 			
+ 		
++		##Devices that were skipped as unreachable, or commands arriving before
++		##start() published the device map, have no object to talk to.
++		address = address.lower()
++		if address not in self.device_objects:
++			logger.warning("Ignoring '%s' command for unknown device %s" % (function, address))
++			return
++
+ 		##Process received		##Probably need to exit here as well if command not send, but should exit on status update above .. grr, hate stupid python
+ 		if function ==  "temp":	
+ 			try:

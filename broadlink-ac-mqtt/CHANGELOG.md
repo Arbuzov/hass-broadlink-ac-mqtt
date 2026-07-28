@@ -1,5 +1,12 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.6.10
+
+- Stop an MQTT command from killing the paho network thread: any exception raised while handling a message is now logged instead of escaping into the client loop (previously it silently ended all MQTT traffic until an add-on restart)
+- Fix `AttributeError: 'AcToMqtt' object has no attribute 'device_objects'` when a retained/queued command arrived between the MQTT connect and the first poll cycle
+- Ignore commands addressed to devices that were skipped as unreachable at startup, instead of raising `KeyError`
+- Match devices by MAC case-insensitively, so a MAC written in upper case in the add-on options no longer leaves that AC deaf to commands (state reporting always used the lower-case form the device reports)
+
 ## 0.6.9
 
 - Patch upstream startup handling so an unreachable configured AC is retried five times, skipped, and does not prevent other configured ACs from starting
