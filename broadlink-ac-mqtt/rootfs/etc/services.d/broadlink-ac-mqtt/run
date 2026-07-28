@@ -4,7 +4,7 @@
 # s6-overlay docs: https://github.com/just-containers/s6-overlay
 # ==============================================================================
 
-python3 -c 'import sys, yaml, json; print(yaml.dump(json.loads(open("/data/options.json").read())))' > /usr/share/broadlink_ac_mqtt-1.2.3/config.yml
+python3 -c 'import sys, yaml, json; print(yaml.dump(json.loads(open("/data/options.json").read())))' > /usr/share/broadlink_ac_mqtt/config.yml
 
 ## Check if debug mode is enabled
 DEBUG_FLAG=""
@@ -26,4 +26,4 @@ if bashio::config.has_value 'service.log_level_console'; then
 fi
 
 ## Run your program
-python3 /usr/share/broadlink_ac_mqtt-1.2.3/monitor.py ${DEBUG_FLAG}
+python3 /usr/share/broadlink_ac_mqtt/monitor.py ${DEBUG_FLAG}
