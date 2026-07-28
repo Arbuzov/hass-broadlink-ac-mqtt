@@ -1,110 +1,102 @@
 name: Builder
 
-env:
-  BUILD_ARGS: "--test"
-  MONITORED_FILES: "build.yaml config.yaml Dockerfile apparmor.txt"
-
 on:
   push:
     branches:
       - master
+    paths:
+      - "broadlink-ac-mqtt/**"
+      - ".github/workflows/builder.yaml"
   pull_request:
     branches:
       - master
+    paths:
+      - "broadlink-ac-mqtt/**"
+      - ".github/workflows/builder.yaml"
+
+env:
+  ADDON_PATH: broadlink-ac-mqtt
+
+permissions:
+  contents: read
 
 jobs:
   init:
     runs-on: ubuntu-latest
-    name: Initialize builds
+    name: Read add-on metadata
     outputs:
-      changed_addons: ${{ steps.changed_addons.outputs.addons }}
-      changed: ${{ steps.changed_addons.outputs.changed }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      version: ${{ steps.addon.outputs.version }}
+      build_from: ${{ steps.addon.outputs.build_from }}
+      labels: ${{ steps.addon.outputs.labels }}
     steps:
       - name: Check out the repository
         uses: actions/checkout@v7.0.1
 
-      - name: Get changed files
-        id: changed_files
-        uses: jitterbit/get-changed-files@v1
-
-      - name: Find add-on directories
-        id: addons
-        uses: home-assistant/actions/helpers/find-addons@master
-
-      - name: Get changed add-ons
-        id: changed_addons
+      - name: Read config.yaml and build.yaml
+        id: addon
         run: |
-          declare -a changed_addons
-          for addon in ${{ steps.addons.outputs.addons }}; do
-            if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon ]]; then
-              for file in ${{ env.MONITORED_FILES }}; do
-                  if [[ "${{ steps.changed_files.outputs.all }}" =~ $addon/$file ]]; then
-                    if [[ ! "${changed_addons[@]}" =~ $addon ]]; then
-                      changed_addons+=("\"${addon}\",");
-                    fi
-                  fi
-              done
-            fi
-          done
-          changed=$(echo ${changed_addons[@]} | rev | cut -c 2- | rev)
-          if [[ -n ${changed} ]]; then
-            echo "Changed add-ons: $changed";
-            echo "changed=true" >> "$GITHUB_OUTPUT";
-            echo "addons=[$changed]" >> "$GITHUB_OUTPUT";
-          else
-            echo "No add-on had any monitored files changed (${{ env.MONITORED_FILES }})";
-          fi
+          config="${ADDON_PATH}/config.yaml"
+          build="${ADDON_PATH}/build.yaml"
+
+          # config.yaml is the source of truth the Supervisor pulls from, so the
+          # registry prefix and image name come from it rather than from the repo
+          # owner. prepare-multi-arch-matrix re-adds the "<arch>-" prefix.
+          raw_image=$(yq '.image' "${config}")
+          image_name=${raw_image##*/}
+          {
+            echo "registry_prefix=${raw_image%/*}"
+            echo "image_name=${image_name#\{arch\}-}"
+            echo "version=$(yq '.version' "${config}")"
+            echo "architectures=$(yq -o=json -I=0 '.arch' "${config}")"
+            echo "build_from=$(yq -o=json -I=0 '.build_from' "${build}")"
+          } >> "$GITHUB_OUTPUT"
+
+          # Labels the retired builder derived from config.yaml, plus whatever
+          # build.yaml declares. io.hass.arch/version and org.opencontainers.image
+          # created/source/version are added by build-image itself.
+          {
+            echo "labels<<EOF"
+            yq '"io.hass.name=" + .name, "io.hass.description=" + .description, "io.hass.url=" + .url' "${config}"
+            echo "io.hass.type=addon"
+            yq '.labels | to_entries[] | .key + "=" + .value' "${build}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Prepare build matrix
+        id: matrix
+        uses: home-assistant/builder/actions/prepare-multi-arch-matrix@4de35182ce1e329181bffcbcc84d33db5e2c7e10 # 2026.06.0
+        with:
+          architectures: ${{ steps.addon.outputs.architectures }}
+          image-name: ${{ steps.addon.outputs.image_name }}
+          registry-prefix: ${{ steps.addon.outputs.registry_prefix }}
+
   build:
     needs: init
-    runs-on: ubuntu-latest
-    if: needs.init.outputs.changed == 'true'
-    name: Build ${{ matrix.arch }} ${{ matrix.addon }} add-on
+    name: Build ${{ matrix.arch }} add-on
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
     strategy:
-      matrix:
-        addon: ${{ fromJson(needs.init.outputs.changed_addons) }}
-        arch: ["aarch64", "amd64"]
-
+      fail-fast: false
+      matrix: ${{ fromJson(needs.init.outputs.matrix) }}
     steps:
-      - name: Check out repository
+      - name: Check out the repository
         uses: actions/checkout@v7.0.1
 
-      - name: Get information
-        id: info
-        uses: home-assistant/actions/helpers/info@master
+      - name: Build ${{ matrix.arch }} add-on
+        uses: home-assistant/builder/actions/build-image@4de35182ce1e329181bffcbcc84d33db5e2c7e10 # 2026.06.0
         with:
-          path: "./${{ matrix.addon }}"
-
-      - name: Check if add-on should be built
-        id: check
-        run: |
-          if [[ "${{ steps.info.outputs.architectures }}" =~ ${{ matrix.arch }} ]]; then
-             echo "build_arch=true" >> "$GITHUB_OUTPUT";
-             echo "image=$(echo ${{ steps.info.outputs.image }} | cut -d'/' -f3)" >> "$GITHUB_OUTPUT";
-             if [[ -z "${{ github.head_ref }}" ]] && [[ "${{ github.event_name }}" == "push" ]]; then
-                 echo "BUILD_ARGS=" >> $GITHUB_ENV;
-             fi
-           else
-             echo "${{ matrix.arch }} is not a valid arch for ${{ matrix.addon }}, skipping build";
-             echo "build_arch=false" >> "$GITHUB_OUTPUT";
-          fi
-      - name: Login to GitHub Container Registry
-        if: env.BUILD_ARGS != '--test'
-        uses: docker/login-action@v4.5.1
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build ${{ matrix.addon }} add-on
-        if: steps.check.outputs.build_arch == 'true'
-        # Pinned to the newest release that has a matching ghcr.io/home-assistant/{arch}-builder
-        # image. 2026.06.0 has no published image, so pulling it fails with "manifest unknown".
-        uses: home-assistant/builder@2026.03.2
-        with:
-          args: |
-            ${{ env.BUILD_ARGS }} \
-            --${{ matrix.arch }} \
-            --target /data/${{ matrix.addon }} \
-            --image "${{ steps.check.outputs.image }}" \
-            --docker-hub "ghcr.io/${{ github.repository_owner }}" \
-            --addon
+          arch: ${{ matrix.arch }}
+          image: ${{ matrix.image }}
+          version: ${{ needs.init.outputs.version }}
+          context: ${{ env.ADDON_PATH }}
+          build-args: BUILD_FROM=${{ fromJson(needs.init.outputs.build_from)[matrix.arch] }}
+          labels: ${{ needs.init.outputs.labels }}
+          image-tags: |
+            ${{ needs.init.outputs.version }}
+            latest
+          cosign: "false"
+          push: ${{ github.event_name == 'push' }}
+          container-registry-password: ${{ secrets.GITHUB_TOKEN }}
