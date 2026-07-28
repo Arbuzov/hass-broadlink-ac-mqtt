@@ -27,7 +27,6 @@ jobs:
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
       version: ${{ steps.addon.outputs.version }}
-      build_from: ${{ steps.addon.outputs.build_from }}
       labels: ${{ steps.addon.outputs.labels }}
     steps:
       - name: Check out the repository
@@ -49,7 +48,6 @@ jobs:
             echo "image_name=${image_name#\{arch\}-}"
             echo "version=$(yq '.version' "${config}")"
             echo "architectures=$(yq -o=json -I=0 '.arch' "${config}")"
-            echo "build_from=$(yq -o=json -I=0 '.build_from' "${build}")"
           } >> "$GITHUB_OUTPUT"
 
           # Labels the retired builder derived from config.yaml, plus whatever
@@ -64,12 +62,21 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Prepare build matrix
-        id: matrix
+        id: base
         uses: home-assistant/builder/actions/prepare-multi-arch-matrix@4de35182ce1e329181bffcbcc84d33db5e2c7e10 # 2026.06.0
         with:
           architectures: ${{ steps.addon.outputs.architectures }}
           image-name: ${{ steps.addon.outputs.image_name }}
           registry-prefix: ${{ steps.addon.outputs.registry_prefix }}
+
+      - name: Carry each architecture's build_from in the matrix
+        id: matrix
+        env:
+          BASE_MATRIX: ${{ steps.base.outputs.matrix }}
+        run: |
+          build_from=$(yq -o=json -I=0 '.build_from' "${ADDON_PATH}/build.yaml")
+          matrix=$(jq -c --argjson from "${build_from}" '.include |= map(. + {build_from: $from[.arch]})' <<< "${BASE_MATRIX}")
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
 
   build:
     needs: init
@@ -92,7 +99,7 @@ jobs:
           image: ${{ matrix.image }}
           version: ${{ needs.init.outputs.version }}
           context: ${{ env.ADDON_PATH }}
-          build-args: BUILD_FROM=${{ fromJson(needs.init.outputs.build_from)[matrix.arch] }}
+          build-args: BUILD_FROM=${{ matrix.build_from }}
           labels: ${{ needs.init.outputs.labels }}
           image-tags: |
             ${{ needs.init.outputs.version }}
