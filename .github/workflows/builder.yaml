@@ -4,6 +4,18 @@ on:
   push:
     branches:
       - master
+      # A test-* branch publishes the version in config.yaml and nothing else,
+      # so it can be installed from Supervisor with a "#branch" repository URL
+      # before the change is merged. That version has to carry a pre-release
+      # suffix; the init job refuses the build otherwise.
+      #
+      # No slash in that name, deliberately. Supervisor parses the URL with
+      # RE_REPOSITORY, whose branch group only gained "/" in 2026-06-19's
+      # PR #6957 -- and because the pattern is anchored, an older Supervisor
+      # does not fall back to the default branch, it rejects the whole URL as
+      # "No valid repository format!". A slashed branch name would break the
+      # one thing these builds exist for.
+      - "test-*"
     paths:
       - "broadlink-ac-mqtt/**"
       - ".github/workflows/builder.yaml"
@@ -13,6 +25,8 @@ on:
     paths:
       - "broadlink-ac-mqtt/**"
       - ".github/workflows/builder.yaml"
+  # Same publication rules as a push, for rebuilding a ref on demand.
+  workflow_dispatch:
 
 env:
   ADDON_PATH: broadlink-ac-mqtt
@@ -61,6 +75,34 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+      # Every ref publishes to the same package, so the ref has to earn the right
+      # to publish and the version has to say which kind of build it is. A
+      # release version off a side branch would replace an image users already
+      # run; a pre-release off master would become the :latest everyone gets,
+      # which is how a forgotten version bump ships. workflow_dispatch accepts
+      # any ref, so this is also what keeps it to master and test-*.
+      - name: Match the version to the ref it is published from
+        if: github.event_name != 'pull_request'
+        env:
+          VERSION: ${{ steps.addon.outputs.version }}
+        run: |
+          case "${GITHUB_REF}:${VERSION}" in
+            refs/heads/master:*-*)
+              echo "::error::config.yaml version ${VERSION} is a pre-release; published from master it would become :latest for every user. Bump it to a release version."
+              exit 1
+              ;;
+            refs/heads/master:*) ;;
+            refs/heads/test-*:*-*) ;;
+            refs/heads/test-*:*)
+              echo "::error::config.yaml version ${VERSION} carries no pre-release suffix; publishing it from ${GITHUB_REF} would overwrite a released image tag."
+              exit 1
+              ;;
+            *)
+              echo "::error::${GITHUB_REF} may not publish. Only master and test-* branches do; move the change to a test-* branch (no slash -- Supervisor rejects a repository URL whose #branch contains one) to get an installable pre-release."
+              exit 1
+              ;;
+          esac
+
       - name: Prepare build matrix
         id: base
         uses: home-assistant/builder/actions/prepare-multi-arch-matrix@4de35182ce1e329181bffcbcc84d33db5e2c7e10 # 2026.06.0
@@ -102,9 +144,13 @@ jobs:
           context: ${{ env.ADDON_PATH }}
           build-args: BUILD_FROM=${{ matrix.build_from }}
           labels: ${{ needs.init.outputs.labels }}
+          # "latest" is what the cache and any :latest consumer resolve to, so
+          # only master may move it — a dispatched branch build publishes its
+          # own version tag and nothing else. Blank lines are dropped by the
+          # action.
           image-tags: |
             ${{ needs.init.outputs.version }}
-            latest
+            ${{ github.ref == 'refs/heads/master' && 'latest' || '' }}
           cosign: "true"
-          push: ${{ github.event_name == 'push' }}
+          push: ${{ github.event_name != 'pull_request' }}
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}

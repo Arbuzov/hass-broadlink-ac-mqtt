@@ -1,6 +1,6 @@
 # AC MQTT proxy for Home Assistant — Add-on
 
-This add-on embeds the [liaan/broadlink_ac_mqtt](https://github.com/liaan/broadlink_ac_mqtt) project into Home Assistant.
+This add-on embeds the [Arbuzov/broadlink_ac_mqtt](https://github.com/Arbuzov/broadlink_ac_mqtt) project into Home Assistant — a maintained fork of the archived [liaan/broadlink_ac_mqtt](https://github.com/liaan/broadlink_ac_mqtt).
 
 ## Configuration
 
