@@ -1,5 +1,10 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.7.1
+
+- Fix a crash on the first status read for any AC reporting a fan speed the driver does not name: `get_key()` hands back the raw integer, and `.title()` on an integer ended the poll with `AttributeError: 'int' object has no attribute 'title'` ([#67](https://github.com/Arbuzov/hass-broadlink-ac-mqtt/issues/67)). An unnamed speed now reports as `Auto`, the way an unnamed swing position already did
+- `NONE` reports as `Auto` too: it is a speed the driver names but never one of the `fan_modes` announced to Home Assistant, so it would have been rejected on arrival. Mute and Turbo still label themselves
+
 ## 0.7.0
 
 - Consume `Arbuzov/broadlink_ac_mqtt@1.2.4` directly instead of patching 1.2.3 at build time: both downstream patches (`skip-unreachable-devices`, `mqtt-callback-guard`) are now upstream, so `patches/` and the `patch -p1` chain are gone

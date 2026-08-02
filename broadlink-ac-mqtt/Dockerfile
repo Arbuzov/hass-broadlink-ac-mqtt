@@ -1,12 +1,12 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
 
-## Upstream release 1.2.4, pinned by commit rather than by tag: a tag can be
-## moved, and then the same add-on version would build different code with
-## nothing in this repository to show for it. Applying the patches used to catch
-## that by accident, because their context stopped matching. Bump together with
-## config.yaml's version.
-ARG UPSTREAM_COMMIT=8a47929690d9426f8fbe355f97ef3ba6c6a64dae
+## Upstream 1.2.4 plus the unmapped-fan-speed fix, pinned by commit rather than
+## by tag: a tag can be moved, and then the same add-on version would build
+## different code with nothing in this repository to show for it. Applying the
+## patches used to catch that by accident, because their context stopped
+## matching. Bump together with config.yaml's version.
+ARG UPSTREAM_COMMIT=b86c16b5c17b5a8a3350684e9f1efeec892ef3f8
 
 COPY rootfs /
 
