@@ -1,6 +1,6 @@
 # Home Assistant broadlink MQTT addon repository
 
-This addon embeds the [Arbuzov/broadlink_ac_mqtt](https://github.com/Arbuzov/broadlink_ac_mqtt) project into Home assistant addons — a maintained fork of the archived [liaan/broadlink_ac_mqtt](https://github.com/liaan/broadlink_ac_mqtt), which stays the upstream of record. Fixes the add-on needs go into that fork rather than being patched in here.
+This add-on embeds the [Arbuzov/broadlink_ac_mqtt](https://github.com/Arbuzov/broadlink_ac_mqtt) project into Home Assistant — a maintained fork of the archived [liaan/broadlink_ac_mqtt](https://github.com/liaan/broadlink_ac_mqtt), which stays the upstream of record. Fixes the add-on needs go into that fork rather than being patched in here.
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Farbuzov%2Fhass-broadlink-ac-mqtt)
 
