@@ -87,6 +87,15 @@ jobs:
           VERSION: ${{ steps.addon.outputs.version }}
         run: |
           case "${GITHUB_REF}:${VERSION}" in
+            # No version at all reaches this as an empty string (yq failed) or
+            # "null" (the key is gone), and both would otherwise land in the
+            # master arm below and publish: build-image drops the blank version
+            # tag but still moves :latest, so the image users get would be an
+            # unnamed build. Refuse before the ref is ever considered.
+            *: | *:null)
+              echo "::error::config.yaml has no usable version (read as '${VERSION}'); publishing would move :latest onto an unnamed build."
+              exit 1
+              ;;
             refs/heads/master:*-*)
               echo "::error::config.yaml version ${VERSION} is a pre-release; published from master it would become :latest for every user. Bump it to a release version."
               exit 1
