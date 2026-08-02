@@ -13,11 +13,11 @@ This add-on embeds the [Arbuzov/broadlink_ac_mqtt](https://github.com/Arbuzov/br
 | `service.debug` | `false` | Enable verbose debug logging (shortcut for `log_level: DEBUG`; overrides `log_level` when set) |
 | `service.log_level` | `INFO` | Root log level written to the log file. One of `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
 | `service.log_level_console` | `INFO` | Log level shown in the Supervisor log. Use `DEBUG` to surface DEBUG messages in the UI |
-| `mqtt.host` | `addon_core_mosquitto` | MQTT broker hostname |
-| `mqtt.port` | `1883` | MQTT broker port |
+| `mqtt.host` | — | MQTT broker hostname. **Leave empty** to use the broker the Supervisor reports — the Mosquitto add-on — which also supplies the port and credentials |
+| `mqtt.port` | `1883` | MQTT broker port. Ignored while `mqtt.host` is empty |
 | `mqtt.client_id` | `ac_to_mqtt` | MQTT client identifier |
-| `mqtt.user` | — | MQTT username |
-| `mqtt.passwd` | — | MQTT password |
+| `mqtt.user` | — | MQTT username. Ignored while `mqtt.host` is empty |
+| `mqtt.passwd` | — | MQTT password. Ignored while `mqtt.host` is empty |
 | `mqtt.topic_prefix` | `/aircon` | Prefix for all MQTT topics |
 | `mqtt.auto_discovery_topic` | `homeassistant` | Topic for HA MQTT auto-discovery |
 | `mqtt.auto_discovery_topic_retain` | `false` | Retain auto-discovery messages |

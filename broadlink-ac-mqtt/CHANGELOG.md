@@ -1,5 +1,12 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
 
+## 0.7.0-test.3
+
+- Take the broker from the Supervisor when `mqtt.host` is left empty: host, port, username and password all come from the MQTT service (`mqtt:want`), so nothing has to be typed in twice and there is no hostname left to get wrong. A host that is filled in still wins, so an external broker keeps working
+- Fix the default MQTT host, which no install could ever have connected to: it was `addon_core_mosquitto`, the Docker container name, which the Supervisor DNS does not resolve (`[Errno -5] Name has no usable address`). The default is now empty, i.e. "ask the Supervisor"
+- Drop the `koos` / `koos_se_password` placeholder credentials from the defaults; they are empty now, and empty means the Supervisor supplies them
+- **Existing installs keep their saved options.** To move onto the Supervisor's broker, clear `mqtt.host`, `mqtt.user` and `mqtt.passwd` in the add-on configuration; to stay on a broker of your own, set `mqtt.host` to a name that resolves (`core-mosquitto` for the Mosquitto add-on)
+
 ## 0.7.0-test.2
 
 - Consume `Arbuzov/broadlink_ac_mqtt@1.2.4` directly instead of patching 1.2.3 at build time: both downstream patches (`skip-unreachable-devices`, `mqtt-callback-guard`) are now upstream, so `patches/` and the `patch -p1` chain are gone
