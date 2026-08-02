@@ -4,7 +4,38 @@
 # s6-overlay docs: https://github.com/just-containers/s6-overlay
 # ==============================================================================
 
-python3 -c 'import sys, yaml, json; print(yaml.dump(json.loads(open("/data/options.json").read())))' > /usr/share/broadlink_ac_mqtt/config.yml
+## An empty mqtt.host means "ask the Supervisor": it already knows where the
+## broker lives and which credentials it issued, so none of it has to be typed
+## in twice. A host that is filled in wins, so an external broker still works.
+if bashio::config.has_value 'mqtt.host'; then
+    bashio::log.info "MQTT broker from the add-on options: $(bashio::config 'mqtt.host')"
+else
+    bashio::services.available "mqtt" \
+        || bashio::exit.nok "mqtt.host is empty and no MQTT service is available"
+    export MQTT_SERVICE=true
+    MQTT_HOST="$(bashio::services mqtt 'host')"
+    MQTT_PORT="$(bashio::services mqtt 'port')"
+    MQTT_USER="$(bashio::services mqtt 'username')"
+    MQTT_PASS="$(bashio::services mqtt 'password')"
+    export MQTT_HOST MQTT_PORT MQTT_USER MQTT_PASS
+    bashio::log.info "MQTT broker from the Supervisor: ${MQTT_HOST}:${MQTT_PORT}"
+fi
+
+python3 - <<'PY' > /usr/share/broadlink_ac_mqtt/config.yml
+import json, os, yaml
+
+config = json.load(open("/data/options.json"))
+if os.environ.get("MQTT_SERVICE"):
+    ##All four together: half the service and half the options would mean
+    ##sending the broker's own credentials to somebody else's host.
+    config["mqtt"].update(
+        host=os.environ["MQTT_HOST"],
+        port=int(os.environ["MQTT_PORT"]),
+        user=os.environ["MQTT_USER"],
+        passwd=os.environ["MQTT_PASS"],
+    )
+print(yaml.dump(config))
+PY
 
 ## Check if debug mode is enabled
 DEBUG_FLAG=""

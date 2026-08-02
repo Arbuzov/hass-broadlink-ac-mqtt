@@ -1,5 +1,5 @@
 name: AC MQTT proxy for home assistant
-version: 0.7.0-test.2
+version: 0.7.0-test.3
 slug: broadlink-ac-mqtt
 description: Provides AC MQTT proxy for home assistant
 url: "https://github.com/Arbuzov/hass-broadlink-ac-mqtt"
@@ -8,6 +8,9 @@ arch:
   - amd64
 init: false
 image: "ghcr.io/arbuzov/{arch}-addon-broadlink-ac-mqtt"
+##want, not need: an external broker configured by hand is still a valid setup
+services:
+  - mqtt:want
 options:
   service:
     daemon_mode: true
@@ -18,11 +21,11 @@ options:
     log_level: INFO
     log_level_console: INFO
   mqtt:
-    host: addon_core_mosquitto
+    host: ""
     port: 1883
     client_id: ac_to_mqtt
-    user: koos
-    passwd: koos_se_password
+    user: ""
+    passwd: ""
     topic_prefix: /aircon
     auto_discovery_topic: homeassistant
     auto_discovery_topic_retain: false
@@ -42,11 +45,11 @@ schema:
     log_level: list(DEBUG|INFO|WARNING|ERROR|CRITICAL)?
     log_level_console: list(DEBUG|INFO|WARNING|ERROR|CRITICAL)?
   mqtt:
-    host: str
+    host: str?
     port: port
     client_id: str
-    user: str
-    passwd: str
+    user: str?
+    passwd: str?
     topic_prefix: str
     auto_discovery_topic: str
     auto_discovery_topic_retain: bool
